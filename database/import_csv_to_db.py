@@ -2,41 +2,37 @@ import sqlite3
 import pandas as pd
 import os
 
-# --- CONNECT TO DATABASE ---
-db_name = "mlb_history.db"
-conn = sqlite3.connect(db_name)
+# --- Connect to database ---
+db_path = "mlb_history.db"
+conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
+print(f" Connected to {db_path}")
 
-print(f" Connected to {db_name}\n")
+# --- Drop existing tables to refresh data ---
+tables = ["statistics", "years", "events"]
+for table in tables:
+    cursor.execute(f"DROP TABLE IF EXISTS {table}")
+print(" Old tables dropped (if they existed).")
 
-# --- IMPORT ALL CSV FILES IN 'data/' FOLDER ---
-data_folder = "data"
+# --- Helper function to import CSVs ---
+def import_csv_to_table(csv_path, table_name):
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+        df.to_sql(table_name, conn, if_exists="replace", index=False)
+        print(f" Imported {len(df)} records into '{table_name}' table.")
+    else:
+        print(f"⚠️ File not found: {csv_path}")
 
-for file in os.listdir(data_folder):
-    if file.endswith(".csv"):
-        table_name = file.replace(".csv", "")
-        file_path = os.path.join(data_folder, file)
+# --- Import CSVs ---
+import_csv_to_table("data/statistics.csv", "statistics")
+import_csv_to_table("data/years.csv", "years")
+import_csv_to_table("data/events.csv", "events")
 
-        print(f" Importing {file} into table '{table_name}'...")
-
-        try:
-            df = pd.read_csv(file_path)
-
-            # Optional: force data types
-            if "Year" in df.columns:
-                df["Year"] = pd.to_numeric(df["Year"], errors="coerce").astype("Int64")
-
-            df.to_sql(table_name, conn, if_exists="replace", index=False)
-            print(f" Imported {len(df)} records into '{table_name}' table.\n")
-
-        except Exception as e:
-            print(f" Error importing {file}: {e}\n")
-
-# --- VERIFY TABLES CREATED ---
-print(" Tables created in the database:")
+# --- Show all tables ---
 cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-for row in cursor.fetchall():
-    print(" -", row[0])
+print("\n Tables in database:")
+for (table_name,) in cursor.fetchall():
+    print(" -", table_name)
 
 conn.close()
 print("\n All CSV files imported successfully into mlb_history.db")
