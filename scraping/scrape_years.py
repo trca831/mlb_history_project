@@ -34,7 +34,7 @@ for link in year_links:
 driver.quit()
 
 # --- QUICK CHECK ---
-print("\n🔎 Preview of scraped results:")
+print("\n Preview of scraped results:")
 for i in range(min(5, len(years))):
     print(f"{years[i]} → {links[i]}")
 
@@ -43,4 +43,4 @@ print(f"\nTotal years scraped: {len(years)}")
 # --- SAVE TO CSV ---
 df_links = pd.DataFrame({"Year": years, "URL": links})
 df_links.to_csv("data/years.csv", index=False)
-print("\n✅ Saved data/years.csv with all yearly links")
+print("\n Saved data/years.csv with all yearly links")
