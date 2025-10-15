@@ -5,4 +5,4 @@ __pycache__/
 
 # Data files
 data/*.csv
-mlb_history.db
+#mlb_history.db
